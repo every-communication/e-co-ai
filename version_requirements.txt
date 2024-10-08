@@ -1,5 +1,7 @@
-tensorflow==2.16.1
-scikit-learn
-numpy
-opencv-python
-mediapipe
+# Python version
+# python==3.12.7
+opencv-python==4.8.0.76
+mediapipe==0.10.13
+tensorflow==2.17.0
+numpy==1.26.4
+scikit-learn==1.3.0
