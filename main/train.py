@@ -7,44 +7,15 @@ from tensorflow.python.keras.layers import LSTM, Dense, Dropout
 from tensorflow.python.keras.models import save_model
 from sklearn.preprocessing import LabelEncoder
 
-# OpenCV로 수어 영상 입력 및 프레임 단위로 나누기
-def extract_frames(video_path):
-    cap = cv2.VideoCapture(video_path)
-    frames = []
-    
-    while cap.isOpened():
-        ret, frame = cap.read()
-        if not ret:
-            break
-        frames.append(frame)
-
-    cap.release()
-    return frames
-
-# MediaPipe를 통해 손의 키포인트 읽기
-def get_hand_keypoints(frames):
-    mp_hands = mp.solutions.hands
-    hands = mp_hands.Hands()
-    keypoints_list = []
-    
-    for frame in frames:
-        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        result = hands.process(rgb_frame)
-        
-        if result.multi_hand_landmarks:
-            for hand_landmarks in result.multi_hand_landmarks:
-                keypoints = [(landmark.x, landmark.y, landmark.z) for landmark in hand_landmarks.landmark]
-                keypoints_list.append(keypoints)
-    
-    return keypoints_list
 
 # 키포인트 시퀀스로 단어 예측
 def create_model(input_shape, num_classes):
-    model = Sequential()
-    model.add(LSTM(128, input_shape=input_shape, return_sequences=True))
-    model.add(Dropout(0.2))
-    model.add(LSTM(64))
-    model.add(Dense(num_classes, activation='softmax'))
+    model = Sequential({
+        LSTM(LSTM(128, input_shape=input_shape, return_sequences=True)),
+        Dropout(0.2),
+        LSTM(64),
+        Dense(num_classes, activation='softmax')
+    })
     model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
     return model
 
