@@ -1,5 +1,0 @@
-1. 영상 정규화 해야함.
-2. mediapipe에서 관절들 연결되어 있는 것 체크하고 해보기
-3. train 설정
-4. video_test 설정
-5. webcam_test 설정

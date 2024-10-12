@@ -1,0 +1,41 @@
+{
+    "model": {
+        "type":"CNN_LSTM",
+        "args":{
+            "in_channels":256,    
+            "num_classes":70
+        }
+    },
+    "data": {
+        "type":"KeyPoints",
+        "args":{
+            "data_dir": "../dataset/keypoints",
+        
+            "batch_size":32,
+            "epochs":30,
+            "validation_split":0.2,
+            
+            "interval":0,
+            "frames":256,
+            "framework":"mediapipe"
+        }
+    },
+    "optimizer": {
+        "type":"Adam",
+        "args":{
+            "learning_rate":0.001,
+            "weight_decay":0.01
+        }
+    },
+    "loss":"",
+    "logging": {
+        "level": "INFO",
+        "log_file": "training.log"
+    },
+    "callbacks": {
+        "early_stopping": {
+        "enabled": true,
+        "patience": 5
+        }
+    }
+}
