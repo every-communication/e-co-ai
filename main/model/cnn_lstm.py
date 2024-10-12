@@ -1,37 +1,46 @@
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from torchvision.models import resnet18
+import tensorflow as tf
+from tensorflow.python.keras import layers, models
+from tensorflow.python.keras import ResNet101
+from base.base_model import BaseModel
 
-# CNN-LSTM Model for Keypoints Data
-class CNN_LSTM(nn.Module):
-    def __init__(self, input_size=246 * 21 * 2, hidden_size=256, num_classes=60, num_layers=2):
+class CNN_LSTM(BaseModel):
+    def __init__(self, num_classes=70):
         super(CNN_LSTM, self).__init__()
         
-        self.conv1d_1 = nn.Conv1d(in_channels=input_size, out_channels=64, kernel_size=3, padding=1)
-        self.conv1d_2 = nn.Conv1d(in_channels=64, out_channels=128, kernel_size=3, padding=1)
-        
-        self.lstm = nn.LSTM(input_size=128, hidden_size=hidden_size, num_layers=num_layers, batch_first=True)
-        
-        self.fc1 = nn.Linear(hidden_size, 128)
-        self.fc2 = nn.Linear(128, num_classes)
+        # Using ResNet101 as a feature extractor
+        self.resnet = ResNet101(include_top=False, weights='imagenet', input_shape=(224, 224, 3))
+        self.resnet.trainable = False  # Freeze the ResNet layers
 
-    def forward(self, x):
-        # x.shape은 (batch_size, seq_length, num_keypoints, num_joints, coord_dim)
-        # keypoints를 (batch_size, seq_length, num_features)로 변환
-        x = x.view(x.size(0), x.size(1), -1)  # (batch_size, seq_length, num_features)
+        # Define the additional layers
+        self.flatten = layers.Flatten()
+        self.dense1 = layers.Dense(300, activation='relu')
+        self.lstm = layers.LSTM(256, return_sequences=True, return_state=True, recurrent_initializer='glorot_uniform')
+        self.fc1 = layers.Dense(128, activation='relu')
+        self.fc2 = layers.Dense(num_classes, activation='softmax')
 
-        x = x.permute(0, 2, 1)  # (batch_size, num_features, seq_length)
-        
-        x = F.relu(self.conv1d_1(x))
-        x = F.relu(self.conv1d_2(x))
-        
-        x = x.permute(0, 2, 1)  # (batch_size, seq_length, num_features)
-        
-        _, (hidden, _) = self.lstm(x)
-        
-        x = hidden[-1]  # LSTM의 마지막 hidden state 사용
-        x = F.relu(self.fc1(x))
+    def call(self, x_3d):
+        # Loop through each time step
+        outputs = []
+        for t in range(x_3d.shape[1]):
+            # Extract features using ResNet
+            x = self.resnet(x_3d[:, t, :, :, :])  # Shape: (batch_size, height, width, channels)
+            x = self.flatten(x)  # Flatten the output
+            x = self.dense1(x)  # Apply dense layer
+            outputs.append(x)  # Collect the outputs
+
+        # Stack the outputs for LSTM input
+        outputs = tf.stack(outputs, axis=1)  # Shape: (batch_size, time_steps, features)
+
+        # LSTM Layer
+        lstm_output, hidden_state, cell_state = self.lstm(outputs)
+
+        # Take the last time step's output
+        x = self.fc1(lstm_output[:, -1, :])
         x = self.fc2(x)
-        
-        return F.log_softmax(x, dim=1)
+        return x
+
+# Example usage
+if __name__ == "__main__":
+    model = CNN_LSTM(num_classes=70)
+    model.build((None, 30, 224, 224, 3))  # Example input shape (batch_size, time_steps, height, width, channels)
+    model.summary_with_params()  # Print the summary with trainable parameters

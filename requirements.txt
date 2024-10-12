@@ -5,6 +5,7 @@ mediapipe==0.10.13
 tensorflow==2.17.0
 numpy==1.26.4
 scikit-learn==1.3.0
-torch
 tqdm
 pandas
+onnx
+onnx-tf

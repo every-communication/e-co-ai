@@ -1,2 +1,2 @@
 from .util import *
-from .metric import *
+from .unicode import *
