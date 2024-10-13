@@ -18,7 +18,7 @@ class BaseTrainer:
         self.save_period = cfg_trainer['save_period']
         self.monitor = cfg_trainer.get('monitor', 'off')
         self.tflite_dir = cfg_trainer['tflite_dir']
-
+        
         if self.monitor == 'off':
             self.mnt_mode = 'off'
             self.mnt_best = 0

@@ -3,8 +3,8 @@ import cv2
 import numpy as np
 
 # 원본 비디오와 저장할 경로 설정
-video_dir = 'C:\\Users\\admin\\Documents\\github\\e-co-ai\\dataset\\raw_video'
-output_dir = 'C:\\Users\\admin\\Documents\\github\\e-co-ai\\dataset\\processed_video'
+video_dir = 'dataset/raw_video'
+output_dir = 'dataset/processed_video'
 resize_dim = 1080  # 정사각형 크기 (예: 1080x1080)
 
 # 출력 경로가 없으면 생성

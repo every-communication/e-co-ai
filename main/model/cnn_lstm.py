@@ -1,5 +1,5 @@
 import tensorflow as tf
-from tensorflow.python.keras import layers, models
+from tensorflow.python.keras.layers import Dense, LSTM, Dropout
 from base.base_model import BaseModel
 from .resnet import ResNet101
 
@@ -12,11 +12,11 @@ class CNN_LSTM(BaseModel):
         self.resnet.trainable = False  # Freeze the ResNet layers
 
         # LSTM 및 Dense 레이어 정의
-        self.lstm = layers.LSTM(256, return_sequences=True, return_state=True, recurrent_initializer='glorot_uniform')
-        self.fc1 = layers.Dense(128, activation='relu')
-        self.fc2 = layers.Dense(num_classes, activation='softmax')
+        self.lstm = LSTM(256, return_sequences=True, return_state=True, recurrent_initializer='glorot_uniform')
+        self.fc1 = Dense(128, activation='relu')
+        self.fc2 = Dense(num_classes, activation='softmax')
 
-    def call(self, x_3d):
+    def forward(self, x_3d):
         # 각 시간 단계별로 루프
         outputs = []
         for t in range(x_3d.shape[1]):

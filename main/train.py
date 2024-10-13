@@ -2,7 +2,7 @@ import argparse
 import collections
 import numpy as np
 import tensorflow as tf
-import tensorflow.python.keras as keras
+import keras.src.optimizers as optimizers
 import data_loader.data_loaders as module_data
 import model.loss as module_loss
 import model.metric as module_metric
@@ -36,8 +36,7 @@ def main(config):
     metrics = [getattr(module_metric, met) for met in config['metrics']] #TODO metric
 
     # build optimizer
-    optimizer = config.init_obj('optimizer', keras.optimizers, model.trainable_variables)
-
+    optimizer = config.init_obj('optimizer', optimizers)
 
     trainer = Trainer(model, criterion, metrics, optimizer, config, device, data_loader)
 

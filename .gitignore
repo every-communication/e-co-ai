@@ -40,4 +40,6 @@ out/
 venv
 
 ### Data ###
-/dataset/**
+dataset/**
+directory_mapping.xlsx
+saved

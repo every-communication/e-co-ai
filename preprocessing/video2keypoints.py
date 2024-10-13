@@ -9,8 +9,8 @@ mp_hands = mp.solutions.hands
 hands = mp_hands.Hands(static_image_mode=False, max_num_hands=2, min_detection_confidence=0.7)
 
 # 비디오 및 키포인트 디렉토리 설정
-video_dir = 'C:\\Users\\admin\\Documents\\GitHub\\e-co-ai\\dataset\\processed_video'
-keypoints_dir = 'C:\\Users\\admin\\Documents\\GitHub\\e-co-ai\\dataset\\keypoints'
+video_dir = 'dataset/processed_video'
+keypoints_dir = 'dataset/keypoints'
 
 if not os.path.exists(keypoints_dir):
     os.makedirs(keypoints_dir)
@@ -44,6 +44,7 @@ def extract_keypoints_from_video(video_path):
 
 # 비디오 파일에서 키포인트 추출 및 저장
 for root, dirs, files in os.walk(video_dir):
+    print(dirs)
     for file in tqdm(files):
         if file.endswith('.mp4') or file.endswith('.mov'):
             video_path = os.path.join(root, file)

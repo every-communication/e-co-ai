@@ -2,7 +2,7 @@ import os
 import cv2
 
 # 원본 비디오 경로 설정
-input_dir = 'C:\\Users\\admin\\Documents\\GitHub\\e-co-ai\\dataset\\raw_video'
+input_dir = 'dataset/raw_video'
 
 # 원본 디렉토리 내의 모든 MOV 파일 변환
 for root, dirs, files in os.walk(input_dir):

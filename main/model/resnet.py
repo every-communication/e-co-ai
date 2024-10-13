@@ -11,7 +11,7 @@ class ResidualBlock(layers.Layer):
         self.bn2 = layers.BatchNormalization()
         self.downsample = downsample
 
-    def call(self, x):
+    def forward(self, x):
         identity = x
         
         x = self.conv1(x)
@@ -55,7 +55,7 @@ class ResNet101(tf.keras.Model):
 
         return tf.keras.Sequential(layers_list)
 
-    def call(self, x):
+    def forward(self, x):
         x = self.conv1(x)
         x = self.bn1(x)
         x = tf.nn.relu(x)

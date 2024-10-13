@@ -3,8 +3,8 @@ import pandas as pd
 from tqdm import tqdm
 
 # 디렉터리 경로 및 매핑 파일 저장 경로 설정
-input_path = 'C:\\Users\\admin\\Documents\\GitHub\\e-co-ai\\dataset\\raw_video'
-output_excel = 'C:\\Users\\admin\\Documents\\GitHub\\e-co-ai\\preprocessing\\directory_mapping.xlsx'
+input_path = 'dataset/raw_video'
+output_excel = 'preprocessing/directory_mapping.xlsx'
 
 # 디렉터리 이름을 숫자로 매핑할 딕셔너리 및 매핑 결과 저장 리스트 초기화
 word_mapping = {}
@@ -12,6 +12,7 @@ mapping_data = []
 
 # 디렉터리 내의 각 폴더에 대해 고유한 숫자 매핑 생성 및 이름 변환
 for idx, folder in enumerate(tqdm(os.listdir(input_path))):
+    print(folder)
     # 매핑 딕셔너리에 저장 (기존 폴더 이름 : 숫자 매핑)
     word_mapping[folder] = idx
     

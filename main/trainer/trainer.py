@@ -7,13 +7,15 @@ import os
 
 class Trainer(BaseTrainer):
     def __init__(self, model, criterion, metric_ftns, optimizer, config, device, data_loader):
-        super().__init__(model, criterion, metric_ftns, optimizer, config)
         self.device = device
         self.data_loader = data_loader
+        super().__init__(model, criterion, metric_ftns, optimizer, config)
         
 
     def _train_epoch(self, epoch):
         total_loss = 0
+        print(self.data_loader)
+        print('\n')
         dataset = self.data_loader.get_train_data()  # get_train_data() 호출
 
         for batch_idx in range(len(dataset) // self.data_loader.batch_size):

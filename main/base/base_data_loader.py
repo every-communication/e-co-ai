@@ -6,7 +6,7 @@ import tensorflow as tf
 from tensorflow.python.keras.utils.all_utils import Sequence
 from tensorflow.python.data import Dataset
 
-class BaseDataLoader(Dataset):
+class BaseDataLoader:
     def __init__(self, dataset, batch_size, shuffle=True, validation_split=0.0):
         self.dataset = dataset
         
@@ -16,6 +16,20 @@ class BaseDataLoader(Dataset):
         
         self.n_samples = len(dataset)
         self.train_data, self.valid_data = self._split_dataset()
+
+        print("Base Data Loader")
+        print(self.dataset)
+
+        print(self.batch_size)
+        print(self.shuffle)
+        print(self.validation_split)
+
+        print(self.n_samples)
+        print(self.train_data)
+        print(self.valid_data)
+        print()
+        print()
+
 
     def _split_dataset(self):
         if self.validation_split == 0.0:

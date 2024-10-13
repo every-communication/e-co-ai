@@ -11,7 +11,12 @@ class KeyPointsDataLoader(BaseDataLoader):
     def __init__(self, data_dir, batch_size, shuffle=True, validation_split=0.0, training=True, **kwargs):
         self.dataset = KeyPointDataset(data_dir=data_dir, **kwargs)
         super().__init__(self.dataset, batch_size, shuffle, validation_split)
-    
+        print()
+        print("Key Points Data Loader")
+        print(self.dataset)
+
+
+
 
 class KeyPointDataset(Dataset):
     def __init__(self, data_dir, batch_size, num_samples, interval, keypoint_types, framework, mode='train', transforms=None):
@@ -27,8 +32,20 @@ class KeyPointDataset(Dataset):
             self.transforms = self.default_transforms()
         else:
             self.transforms = transforms
+
+        print()
+        print("Key Points DataSet")
+        print(self.data_dir)
+        print(self.mode)
+        print(self.batch_size)
+        print(self.num_samples)
+        print(self.interval)
+        print(self.keypoint_types)
+        print(self.framework)
+        print()
+        print()
         
-        self.videos = []
+        self.keypoints = []
         self.labels = []
         self._load_data()
 
@@ -46,14 +63,14 @@ class KeyPointDataset(Dataset):
             if self.framework == 'mediapipe':
                 for instance in os.listdir(os.path.join(self.data_dir, vocab)):
                     vocab_datas = os.path.join(self.data_dir, vocab, instance)
-                    self.videos.append(vocab_datas)
+                    self.keypoints.append(vocab_datas)
                     self.labels.append(label)
 
     def __len__(self):
-        return len(self.videos)
+        return len(self.keypoints)
 
     def __getitem__(self, index):
-        video_path = self.videos[index]
+        video_path = self.keypoints[index]
         frame_keys = sorted(os.listdir(video_path))
         frame_keys = trim_action(video_path, frame_keys)
         

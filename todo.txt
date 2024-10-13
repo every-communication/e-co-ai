@@ -1,0 +1,61 @@
+[수어 -> 단어 ###]
+
+<Create Video Dataset>
+1. 단어 개수 늘리기
+2. 영상 개수 늘리기
+
+<Preprocessing>
+0. 환경 세팅 (python 3.11)
+O. ZIP 압축 풀기 및 재배치?
+O. mov 파일 -> mp4 파일?
+O. 단어장 생성 및 KEY로 저장?
+
+X. 영상 Normalizing?              
+    - 현재 해상도 resize(1080, 1080) => (224, 224)
+X. keypoints 추출?
+    - 추출 잘 되고 있음...
+    - npy 로 받으니까 앞뒤 프레임 없이 손동작만 인식함.(싱크 안 맞음)
+    - 좌우 손 좌표 따로 받기?       
+    - 머리 위치도 받아야 할 것 같음....
+
+O. show_video.py로 확인하기.
+
+<Config>
+O. Config 잘 읽은가?
+O. 각각 모듈을 잘 부르는가?  
+    X. optimizer -> adam 잘 부르고 있는가?
+
+
+<Trainer>
+0. arguments 잘 들어가는가?
+2. train_epoch 작동 잘 하는가?
+3. train 작동 잘 하는가?
+
+.... 모델을 바꿔야 할 필요를 느끼고 있습니다
+mobile 이식을 위해
+tensorflow lite 를 사용하고자 하는데
+pyTorch를 사용해서 변환하는 것에서 어려움이 있기에...
+
+tensorflow 에서 BatchNormalize 사라져서
+없이 쓰는 방향으로 바꾸기 notion 에 참고할 자료 올려놨음...
+
+<Data Loader>
+1. arguments 잘 들어가는가?
+2. train & validation 데이터 분리 잘 되는가?
+3. 
+
+
+<Training & Validation>
+
+
+
+
+<Test>
+1. 임의의 영상으로 테스트 해보기
+    - Youtube 영상 다운로드
+2. 직접 WebCam 으로 테스트 해보기
+
+<TensorFlow Lite>
+X. 학습된 모델 tflite 로 저장하기
+
+### 단어 -> 문장 ###
