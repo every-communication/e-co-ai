@@ -1,0 +1,57 @@
+{
+    "name": "CNN_LSTM",
+    "arch": {
+        "type": "CNN_LSTM",
+        "args": {
+            "in_channels": 256,
+            "num_classes": 70
+        }
+    },
+    "data_loader": {
+        "type": "KeyPointsDataLoader",
+        "args": {
+            "data_dir": "../dataset/keypoints",
+            "batch_size": 64,
+            "shuffle": true,
+            "validation_split": 0.2,
+            "frames": 128,
+            "sample_even": true,
+            "interval": 0,
+            "keypoints": [
+                "hand_left",
+                "hand_right"
+            ]
+        }
+    },
+    "loss": "cross_entropy_loss",
+    "metrics": [
+        "accuracy",
+        "top_k_acc",
+        "f1-score"
+    ],
+    "optimizer": {
+        "type": "Adam",
+        "args": {
+            "learning_rate": 0.001,
+            "weight_decay": 0.01,
+            "amsgrad": true
+        }
+    },
+    "lr_scheduler": {
+        "type": "StepLR",
+        "args": {
+            "step_size": 50,
+            "gamma": 0.1
+        }
+    },
+    "trainer": {
+        "epochs": 30,
+        "save_dir": "saved/",
+        "save_period": 1,
+        "verbosity": 2,
+        "monitor": "min val_loss",
+        "early_stop": 10,
+        "tensorboard": true,
+        "tflite_dir": "results/"
+    }
+}

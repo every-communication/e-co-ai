@@ -6,13 +6,13 @@ from operator import getitem
 from datetime import datetime
 from logger import setup_logging
 from utils import read_json, write_json
-
+from tensorflow.python.keras.optimizers import adam_v2
+import json
 
 class ConfigParser:
-    def __init__(self, config, resume=None, modification=None, run_id=None):
+    def __init__(self, config, modification=None, run_id=None):
         # 설정 파일 불러오고, 불러올 체크포인트 수정
         self._config = _update_config(config, modification)
-        self.resume = resume
 
         # 저장할 디렉터리 설정 (이름 / model, log)
         save_dir = Path(self.config['trainer']['save_dir']) # 저장할 경로 설정
@@ -59,11 +59,13 @@ class ConfigParser:
         if args.config:
             # update new config for fine-tuning
             config.update(read_json(args.config))
+            
 
         # 수정사항 파싱
         modification = {opt.target : getattr(args, _get_opt_name(opt.flags)) for opt in options}
+        
         # 인스턴스 생성 및 반환
-        return cls(config, modification)
+        return cls(config, modification=modification)
 
     # 객체 및 함수 초기화
     def init_obj(self, name, module, *args, **kwargs):
@@ -72,18 +74,10 @@ class ConfigParser:
         # kwargs에 있는 키가 module_args에 없는지 확인, 있으면 예외 발생
         assert all([k not in module_args for k in kwargs]), 'Overwriting kwargs given in config file is not allowed'
         module_args.update(kwargs) # module_args -> kwargs 업데이트
-        return getattr(module, module_name)(*args, **module_args) # module_name 함수 가져와 인수 초기화
+        return getattr(module, module_name) # module_name 함수 가져와 인수 초기화
     
 
     def init_ftn(self, name, module, *args, **kwargs):
-        """
-        Finds a function handle with the name given as 'type' in config, and returns the
-        function with given arguments fixed with functools.partial.
-
-        `function = config.init_ftn('name', module, a, b=1)`
-        is equivalent to
-        `function = lambda *args, **kwargs: module.name(a, *args, b=1, **kwargs)`.
-        """
         module_name = self[name]['type']
         module_args = dict(self[name]['args'])
         assert all([k not in module_args for k in kwargs]), 'Overwriting kwargs given in config file is not allowed'
@@ -91,7 +85,6 @@ class ConfigParser:
         return partial(getattr(module, module_name), *args, **module_args) # partial 객체 생성, 인수 고정한 함수 반환
 
     def __getitem__(self, name):
-        """Access items like ordinary dict."""
         return self.config[name]
 
     def get_logger(self, name, verbosity=2):
@@ -125,18 +118,18 @@ def _update_config(config, modification):
         if v is not None:
             _set_by_path(config, k, v)
     return config
+
 # 옵션 이름에서 '--' 제거
 def _get_opt_name(flags):
     for flg in flags:
         if flg.startswith('--'):
             return flg.replace('--', '')
     return flags[0].replace('--', '')
+
 # 키 경로를 따라 중첩된 객체 처리
 def _set_by_path(tree, keys, value):
-    """Set a value in a nested object in tree by sequence of keys."""
     keys = keys.split(';')
     _get_by_path(tree, keys[:-1])[keys[-1]] = value
     
 def _get_by_path(tree, keys):
-    """Access a nested object in tree by sequence of keys."""
     return reduce(getitem, keys, tree)

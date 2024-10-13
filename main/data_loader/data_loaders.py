@@ -3,10 +3,17 @@ import os
 import json
 import math
 import tensorflow as tf
-from tensorflow.python.keras.utils import Sequence
+from tensorflow.python.keras.utils.all_utils import Sequence
 from base.base_data_loader import BaseDataLoader
+from tensorflow.python.data import Dataset
 
-class KeyPointDataset(Sequence):
+class KeyPointsDataLoader(BaseDataLoader):
+    def __init__(self, data_dir, batch_size, shuffle=True, validation_split=0.0, training=True, **kwargs):
+        self.dataset = KeyPointDataset(data_dir=data_dir, **kwargs)
+        super().__init__(self.dataset, batch_size, shuffle, validation_split)
+    
+
+class KeyPointDataset(Dataset):
     def __init__(self, data_dir, batch_size, num_samples, interval, keypoint_types, framework, mode='train', transforms=None):
         self.data_dir = data_dir
         self.mode = mode
@@ -32,6 +39,7 @@ class KeyPointDataset(Sequence):
         ])
 
     def _load_data(self):
+        print(self.data_dir)
         vocab_dirs = sorted(os.listdir(self.data_dir))
         for vocab in vocab_dirs:
             label = vocab
@@ -132,15 +140,3 @@ def normalize(coordinates):
     std_dev = np.std(c_array)
     normalized_coordinates = (c_array - mean_value) / std_dev
     return normalized_coordinates
-
-# Sample usage
-# Create dataset
-keypoint_dataset = KeyPointDataset(data_dir='your_data_directory', batch_size=32, num_samples=10, interval=1,
-                                    keypoint_types=['keypoint_type1', 'keypoint_type2'], framework='mediapipe')
-
-# Create data loader
-data_loader = BaseDataLoader(keypoint_dataset, batch_size=32, shuffle=True, validation_split=0.2)
-
-# Iterate over training data
-for data, labels in data_loader.get_train_data():
-    print(data.shape, labels)

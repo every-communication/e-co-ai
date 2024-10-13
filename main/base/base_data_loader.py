@@ -3,15 +3,17 @@ import os
 import json
 import math
 import tensorflow as tf
-from tensorflow.keras.utils import Sequence
+from tensorflow.python.keras.utils.all_utils import Sequence
+from tensorflow.python.data import Dataset
 
-class BaseDataLoader(tf.data.Dataset):
+class BaseDataLoader(Dataset):
     def __init__(self, dataset, batch_size, shuffle=True, validation_split=0.0):
-        self.validation_split = validation_split
-        self.shuffle = shuffle
         self.dataset = dataset
         
         self.batch_size = batch_size
+        self.shuffle = shuffle
+        self.validation_split = validation_split
+        
         self.n_samples = len(dataset)
         self.train_data, self.valid_data = self._split_dataset()
 

@@ -19,16 +19,14 @@
             "frames":128,
             "sample_even": true,          
             "interval":0,
-            "keypoints":["hand_left", "hand_right"],
-            "format":"flatten",
-            "framework":"mediapipe"
+            "keypoints":["hand_left", "hand_right"]
         }
     },
     "loss":"cross_entropy_loss",
-    "metrics": ["accuracy", "top_k_acc", "f1-score"],
+    "metrics": ["accuracy", "top_k_acc", "f1_score"],
     
     "optimizer": {
-        "type":"Adam",
+        "type":"adam_v2",
         "args":{
             "learning_rate":0.001,
             "weight_decay":0.01,
