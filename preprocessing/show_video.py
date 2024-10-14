@@ -44,7 +44,7 @@ for root, dirs, files in os.walk(video_dir):
                 cv2.imshow('Video with Keypoints', frame)
 
                 # ESC 키를 누르면 종료
-                if cv2.waitKey(1) & 0xFF == 27:  
+                if cv2.waitKey(5) & 0xFF == 27:  
                     break
 
                 frame_count += 1

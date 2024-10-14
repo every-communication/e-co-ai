@@ -13,20 +13,18 @@
             "data_dir": "../dataset/keypoints",
         
             "batch_size":64,
-            "shuffle":true,
             "validation_split":0.2,
 
-            "frames":128,
-            "sample_even": true,          
+            "frames":128,       
             "interval":0,
-            "keypoints":["hand_left", "hand_right"]
+            "keypoints_types":["hand_left", "hand_right"]
         }
     },
     "loss":"cross_entropy_loss",
     "metrics": ["accuracy", "top_k_acc", "f1_score"],
     
     "optimizer": {
-        "type":"Adam",
+        "type":"adam",
         "args":{
             "learning_rate":0.001,
             "weight_decay":0.01,

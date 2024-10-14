@@ -3,7 +3,7 @@ import collections
 import numpy as np
 import tensorflow as tf
 import keras.src.optimizers as optimizers
-import data_loader.data_loaders as module_data
+from data_loader.data_loader_factory import DataLoaderFactory
 import model.loss as module_loss
 import model.metric as module_metric
 import model as module_arch
@@ -21,8 +21,8 @@ def main(config):
     logger = config.get_logger('train') #TODO NOT LOGGER FILE
 
     # setup data_loader instances
-    data_loader = config.init_obj('data_loader', module_data)
-    
+    data_loader = DataLoaderFactory.get_data_loader(config['data_loader']['type'], dict(config['data_loader']['args']))
+
     # build model architecture, then print to console
     model = config.init_obj('arch', module_arch)                
     logger.info(model) #TODO logger

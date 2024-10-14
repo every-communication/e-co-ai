@@ -43,3 +43,4 @@ venv
 dataset/**
 directory_mapping.xlsx
 saved
+__pycache__/*

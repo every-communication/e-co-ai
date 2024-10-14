@@ -6,7 +6,7 @@
 
 <Preprocessing>
 0. 환경 세팅 (python 3.11)
-O. ZIP 압축 풀기 및 재배치?
+O. ZIP 압축 풀기 및 재배치? => rearrange 사용하지 않음
 O. mov 파일 -> mp4 파일?
 O. 단어장 생성 및 KEY로 저장?
 

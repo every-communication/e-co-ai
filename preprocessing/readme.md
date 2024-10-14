@@ -1,12 +1,6 @@
 ### 순서
-1. 압축 풀기 -> 압축 total.zip
+1. 압축 풀기
 <br>=> 반디집-mac 파일 안뜸
-
-2. rearrange_videos
-<br>=> 영상 위치 재배치
-
-3. mov2mp4
-<br>=> mov 형식의 영상 mp4 형식으로 전환
 
 4. vocab2dic
 <br>=> 각 단어들 사전형식을 저장 및 숫자로 변환

@@ -1,9 +1,8 @@
 import tensorflow as tf
 from tensorflow.python.keras.layers import Dense, LSTM, Dropout
-from base.base_model import BaseModel
 from .resnet import ResNet101
 
-class CNN_LSTM(BaseModel):
+class CNN_LSTM:
     def __init__(self, num_classes=70):
         super(CNN_LSTM, self).__init__()
         

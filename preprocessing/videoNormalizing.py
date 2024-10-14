@@ -43,6 +43,22 @@ def process_video(video_path, output_path):
     out.release()
     print(f"Saved normalized video to {output_path}")
 
+def convert_mov_to_mp4(input_file, output_file):
+    cap = cv2.VideoCapture(input_file)
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    out = cv2.VideoWriter(output_file, fourcc, cap.get(cv2.CAP_PROP_FPS), 
+                          (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))))
+
+    while cap.isOpened():
+        ret, frame = cap.read()
+        if not ret:
+            break
+        out.write(frame)
+
+    cap.release()
+    out.release()
+    print(f"Converted: {input_file} to {output_file}")
+
 def process_all_videos(video_dir, output_dir):
     if not os.path.exists(video_dir):
         print(f"Error: The directory '{video_dir}' does not exist.")
@@ -56,12 +72,17 @@ def process_all_videos(video_dir, output_dir):
             os.makedirs(output_vocab_path)
 
         for video_file in os.listdir(vocab_path):
-            if video_file.endswith('.mp4'):
-                video_path = os.path.join(vocab_path, video_file)
-                output_path = os.path.join(output_vocab_path, video_file)
+            if video_file.endswith('.mov') or video_file.endswith('.mp4'):
+                input_file = os.path.join(vocab_path, video_file)
+                output_file = os.path.join(vocab_path, f"{os.path.splitext(video_file)[0]}.mp4")
 
-                print(f'Processing {video_path} -> {output_path}')
-                process_video(video_path, output_path)
+                # MOV 파일을 MP4로 변환
+                if video_file.endswith('.mov'):
+                    convert_mov_to_mp4(input_file, output_file)
+
+                # 변환한 MP4 파일을 정규화하고 리사이즈
+                normalized_output_path = os.path.join(output_vocab_path, f"{os.path.splitext(video_file)[0]}.mp4")
+                process_video(output_file, normalized_output_path)
 
 if __name__ == '__main__':
     process_all_videos(video_dir, output_dir)
