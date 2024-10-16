@@ -42,8 +42,13 @@ class Trainer:
     def train(self):
         not_improved_count = 0
         for epoch in range(self.start_epoch, self.epochs + 1):
-            result = self._train_epoch(epoch)
+            print("train.py - train - epoch")
+            print(epoch)
+            print(self.start_epoch)
+            print(self.epochs)
 
+            result = self._train_epoch(epoch)
+            print("\n", result)
             # 로그 기록
             log = {'epoch': epoch}
             log.update(result)
@@ -103,36 +108,49 @@ class Trainer:
 
     def _train_epoch(self, epoch):
         total_loss = 0
-        print(self.data_loader)
-        print('\n')
-        dataset = self.data_loader.get_train_data()  # get_train_data() 호출
+        
+        train_data, valid_data = self.data_loader.load_data()
+        print("trainer - train_epoch - train_data")
+        print("train_data : ", train_data)
+        print("valid_data : ", valid_data)
+        #train_data = train_data.prefetch(tf.data.AUTOTUNE)  # 성능 최적화를 위해 prefetch 사용
+        #print("trainer - train_epoch - prefetch")
+        #print(train_data)
 
-        for batch_idx in range(len(dataset) // self.data_loader.batch_size):
-            # 배치 데이터 가져오기
-            data, target = dataset[batch_idx]
-            data, target = data.to(self.device), target.to(self.device)
-
+        for batch_idx, (data, target) in enumerate(train_data):
+            print("trainer - train_epoch - batch")
+            print("batch_size:",batch_idx,", data:", data,", target:", target)
+            data, target = data.to(self.device), target.to(self.device)  # GPU/CPU 이동
+            
             with tf.GradientTape() as tape:
-                output = self.model(data)
-                loss = self.criterion(target, output)
+                output = self.model(data, training=True)  # 모델에 데이터를 입력하여 예측값 생성
+                print("criterion")
+                print(self.criterion(target, output))
+                loss = self.criterion(target, output)  # 손실 계산
 
+            # Gradient 계산 및 적용
             gradients = tape.gradient(loss, self.model.trainable_variables)
             self.optimizer.apply_gradients(zip(gradients, self.model.trainable_variables))
-            total_loss += loss.numpy()  # NumPy 배열로 변환
+            total_loss += loss.numpy()  # 손실값을 NumPy로 변환하여 더하기
 
             # 로그 기록 및 TensorBoard 업데이트
-            self.writer.set_step(epoch * (len(dataset) // self.data_loader.batch_size) + batch_idx)
+            self.writer.set_step(epoch * len(train_data) + batch_idx)
             self.writer.add_scalar('loss', loss.numpy(), global_step=batch_idx)
-
-        log = {'loss': total_loss / (len(dataset) // self.data_loader.batch_size)}
+        
+        # 에포크 평균 손실값 계산
+        log = {'loss': total_loss / len(train_data)}
+        
+        # 검증 수행 (선택적)
         if self.do_validation:
             val_log = self._valid_epoch(epoch)
             log.update(val_log)
 
+        # 학습률 조정 (선택적)
         if self.lr_scheduler is not None:
             self.lr_scheduler.step()
 
-        return log 
+        return log
+
 
     def _valid_epoch(self, epoch):
         # Validation 로직 추가

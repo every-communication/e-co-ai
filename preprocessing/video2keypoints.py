@@ -7,8 +7,8 @@ from tqdm import tqdm
 # Mediapipe 설정
 mp_hands = mp.solutions.hands
 mp_face_detection = mp.solutions.face_detection
-hands = mp_hands.Hands(static_image_mode=False, max_num_hands=2, min_detection_confidence=0.7)
-face_detection = mp_face_detection.FaceDetection(min_detection_confidence=0.7)
+hands = mp_hands.Hands(static_image_mode=False, max_num_hands=2, min_detection_confidence=0.5)
+face_detection = mp_face_detection.FaceDetection(min_detection_confidence=0.5)
 
 # 비디오 및 키포인트 디렉토리 설정
 video_dir = 'dataset/processed_video'
@@ -18,7 +18,7 @@ if not os.path.exists(keypoints_dir):
     os.makedirs(keypoints_dir)
 
 def extract_keypoints_from_video(video_path):
-    frame_keypoints = []
+    all_frame_keypoints = []
     cap = cv2.VideoCapture(video_path)
 
     while cap.isOpened():
@@ -31,9 +31,10 @@ def extract_keypoints_from_video(video_path):
         face_results = face_detection.process(frame_rgb)
 
         # 프레임별 좌우 손과 얼굴 경계 상자 데이터를 위한 초기 리스트
-        left_hand_keypoints = [(0, 0)] * 21  # 21개의 랜드마크
-        right_hand_keypoints = [(0, 0)] * 21
-        face_bbox = [0, 0, 0, 0]  # 얼굴의 경계 상자 [xmin, ymin, width, height]
+        #left_hand_keypoints = np.zeros((21, 2))  # 21개의 랜드마크
+        #right_hand_keypoints = np.zeros((21, 2))
+        #face_bbox = np.zeros((2, 2))  # 얼굴의 경계 상자 [xmin, ymin, width, height]
+        frame_keypoints = np.zeros((44, 2))
 
         # 손 키포인트 저장
         if hand_results.multi_hand_landmarks and hand_results.multi_handedness:
@@ -42,22 +43,25 @@ def extract_keypoints_from_video(video_path):
                 hand_keypoints = [(landmark.x, landmark.y) for landmark in hand_landmarks.landmark]
 
                 if handedness == 'Left':
-                    left_hand_keypoints = hand_keypoints
+                    #left_hand_keypoints = hand_keypoints
+                    frame_keypoints[:21] = hand_keypoints
                 elif handedness == 'Right':
-                    right_hand_keypoints = hand_keypoints
+                    #right_hand_keypoints = hand_keypoints
+                    frame_keypoints[21:42] = hand_keypoints
 
         # 얼굴 경계 상자 저장
         if face_results.detections:
             detection = face_results.detections[0]
             bbox = detection.location_data.relative_bounding_box
-            face_bbox = [bbox.xmin, bbox.ymin, bbox.width, bbox.height]
-
+            #face_bbox = [bbox.xmin, bbox.ymin, bbox.width, bbox.height]
+            face_bbox = np.array([
+                [bbox.xmin, bbox.ymin], 
+                [bbox.xmin + bbox.width, bbox.ymin + bbox.height]
+            ])
+            frame_keypoints[42:] = face_bbox
+        
         # 프레임의 좌우 손 키포인트와 얼굴 경계 상자 정보를 합쳐서 저장
-        frame_keypoints.append({
-            "left_hand": left_hand_keypoints,
-            "right_hand": right_hand_keypoints,
-            "face_bbox": face_bbox
-        })
+        all_frame_keypoints.append(frame_keypoints)
 
     cap.release()
     return frame_keypoints
