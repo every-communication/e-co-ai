@@ -1,27 +1,40 @@
 import importlib
 from datetime import datetime
-import tensorflow as tf
+
 
 class TensorboardWriter():
     def __init__(self, log_dir, logger, enabled):
         self.writer = None
+        self.selected_module = ""
 
         if enabled:
             log_dir = str(log_dir)
-            self.writer = tf.summary.create_file_writer(log_dir)
 
-            if self.writer is None:
-                message = "Warning: visualization (TensorBoard) is configured to use, but it could not be initialized."
+            # Retrieve vizualization writer.
+            succeeded = False
+            for module in ["torch.utils.tensorboard", "tensorboardX"]:
+                try:
+                    self.writer = importlib.import_module(module).SummaryWriter(log_dir)
+                    succeeded = True
+                    break
+                except ImportError:
+                    succeeded = False
+                self.selected_module = module
+
+            if not succeeded:
+                message = "Warning: visualization (Tensorboard) is configured to use, but currently not installed on " \
+                    "this machine. Please install TensorboardX with 'pip install tensorboardx', upgrade PyTorch to " \
+                    "version >= 1.1 to use 'torch.utils.tensorboard' or turn off the option in the 'config.json' file."
                 logger.warning(message)
 
         self.step = 0
         self.mode = ''
 
-        # 기록하기 위한 함수 이름들?
         self.tb_writer_ftns = {
-            'scalar', 'scalars', 'image', 'images', 'audio',
-            'text', 'histogram', 'pr_curve', 'embedding'
+            'add_scalar', 'add_scalars', 'add_image', 'add_images', 'add_audio',
+            'add_text', 'add_histogram', 'add_pr_curve', 'add_embedding'
         }
+        self.tag_mode_exceptions = {'add_histogram', 'add_embedding'}
         self.timer = datetime.now()
 
     def set_step(self, step, mode='train'):
@@ -34,40 +47,27 @@ class TensorboardWriter():
             self.add_scalar('steps_per_sec', 1 / duration.total_seconds())
             self.timer = datetime.now()
 
-    def add_scalar(self, tag, data, step=None):
-        if step is None:
-            step = self.step
-        with self.writer.as_default():
-            tf.summary.scalar(f'{tag}/{self.mode}', data, step=step)
-            self.writer.flush()
-
-    def add_scalars(self, tag, data, step=None):
-        if step is None:
-            step = self.step
-        with self.writer.as_default():
-            for key, value in data.items():
-                tf.summary.scalar(f'{tag}/{key}/{self.mode}', value, step=step)
-            self.writer.flush()
-
-    def add_image(self, tag, image, step=None):
-        if step is None:
-            step = self.step
-        with self.writer.as_default():
-            tf.summary.image(f'{tag}/{self.mode}', image, step=step)
-            self.writer.flush()
-
-    # You can implement additional methods for images, audio, histograms, etc., similarly
-    # Just follow the pattern established with the add_scalar and add_scalars methods.
-
     def __getattr__(self, name):
         """
         If visualization is configured to use:
             return add_data() methods of tensorboard with additional information (step, tag) added.
         Otherwise:
-            raise AttributeError.
+            return a blank function handle that does nothing
         """
         if name in self.tb_writer_ftns:
-            raise AttributeError(f"Method '{name}' is not implemented for TensorBoard in this context.")
+            add_data = getattr(self.writer, name, None)
+
+            def wrapper(tag, data, *args, **kwargs):
+                if add_data is not None:
+                    # add mode(train/valid) tag
+                    if name not in self.tag_mode_exceptions:
+                        tag = '{}/{}'.format(tag, self.mode)
+                    add_data(tag, data, self.step, *args, **kwargs)
+            return wrapper
         else:
-            # Default action for returning methods defined in this class, set_step() for instance.
-            raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
+            # default action for returning methods defined in this class, set_step() for instance.
+            try:
+                attr = object.__getattr__(name)
+            except AttributeError:
+                raise AttributeError("type object '{}' has no attribute '{}'".format(self.selected_module, name))
+            return attr

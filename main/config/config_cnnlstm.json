@@ -12,10 +12,10 @@
         "args":{
             "data_dir": "../dataset/keypoints",
         
-            "batch_size":1,
+            "batch_size":10,
             "validation_split":0.2,
 
-            "frames":128,       
+            "frames":256,       
             "interval":0,
             "keypoints_types":["hand_left", "hand_right"]
         }
@@ -39,7 +39,7 @@
         }
     },
     "trainer":{
-        "epochs":30,
+        "epochs":1,
 
         "save_dir":"saved/",
         "save_period": 1,

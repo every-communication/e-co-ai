@@ -1,6 +1,7 @@
 import tensorflow as tf
 from data_loader.data_loader_factory import KeyPointsDataLoader
 from tensorflow.python.keras import Model, optimizers, losses
+from sklearn.preprocessing import LabelEncoder
 from logger import TensorboardWriter  # TensorboardWriter를 TensorFlow에 맞게 수정해야 할 수 있습니다.
 import os
 
@@ -22,6 +23,8 @@ class Trainer:
         self.save_period = cfg_trainer['save_period']
         self.monitor = cfg_trainer.get('monitor', 'off')
         self.tflite_dir = cfg_trainer['tflite_dir']
+
+        self.do_validation = True
         
         if self.monitor == 'off':
             self.mnt_mode = 'off'
@@ -42,13 +45,8 @@ class Trainer:
     def train(self):
         not_improved_count = 0
         for epoch in range(self.start_epoch, self.epochs + 1):
-            print("train.py - train - epoch")
-            print(epoch)
-            print(self.start_epoch)
-            print(self.epochs)
-
             result = self._train_epoch(epoch)
-            print("\n", result)
+            
             # 로그 기록
             log = {'epoch': epoch}
             log.update(result)
@@ -89,18 +87,24 @@ class Trainer:
 
     def _save_checkpoint(self, epoch, save_best=False):
         model_path = os.path.join(self.checkpoint_dir, 'checkpoint_epoch_{}.h5'.format(epoch))
-        self.model.save(model_path)
+        self.model.save_weights(model_path)
         self.logger.info("체크포인트 저장: {} ...".format(model_path))
 
         if save_best:
             best_path = os.path.join(self.checkpoint_dir, 'model_best.h5')
-            self.model.save(best_path)
+            self.model.save_weights(best_path)
             self.logger.info("최고 모델 저장: model_best.h5 ...")
 
     def _convert_to_tflite(self, model_path):
         # TFLite 모델 변환
-        converter = tf.lite.TFLiteConverter.from_keras_model(self.model)
-        tflite_model = converter.convert()
+        self.model.load_weights(model_path)
+        # TFLite 변환기 설정
+        converter = tf.lite.TFLiteConverter.from_keras_model(self.model) # best_model은 훈련된 Keras 모델입니다.
+        converter.target_spec.supported_ops = [
+            tf.lite.OpsSet.TFLITE_BUILTINS,
+            tf.lite.OpsSet.SELECT_TF_OPS
+        ]
+        tflite_model = converter.convert() # TensorList 관련 설정
         tflite_path = os.path.join(self.tflite_dir, 'model_best.tflite')
         with open(tflite_path, 'wb') as f:
             f.write(tflite_model)
@@ -110,23 +114,17 @@ class Trainer:
         total_loss = 0
         
         train_data, valid_data = self.data_loader.load_data()
-        print("trainer - train_epoch - train_data")
-        print("train_data : ", train_data)
-        print("valid_data : ", valid_data)
-        #train_data = train_data.prefetch(tf.data.AUTOTUNE)  # 성능 최적화를 위해 prefetch 사용
-        #print("trainer - train_epoch - prefetch")
-        #print(train_data)
+        # 배치 shape 확인
+        for batch in train_data.take(1):
+            print("Sample batch shape: ", batch[0].shape)  # 데이터 shape 확인
+            break
 
-        for batch_idx, (data, target) in enumerate(train_data):
-            print("trainer - train_epoch - batch")
-            print("batch_size:",batch_idx,", data:", data,", target:", target)
-            data, target = data.to(self.device), target.to(self.device)  # GPU/CPU 이동
-            
+        for batch_idx, (data, label) in enumerate(train_data):
             with tf.GradientTape() as tape:
-                output = self.model(data, training=True)  # 모델에 데이터를 입력하여 예측값 생성
-                print("criterion")
-                print(self.criterion(target, output))
-                loss = self.criterion(target, output)  # 손실 계산
+                output = self.model(data)  # 모델에 데이터를 입력하여 예측값 생성
+                output = output - 1
+                label = label - 1
+                loss = self.criterion(label, output)  # 손실 계산
 
             # Gradient 계산 및 적용
             gradients = tape.gradient(loss, self.model.trainable_variables)
@@ -135,32 +133,33 @@ class Trainer:
 
             # 로그 기록 및 TensorBoard 업데이트
             self.writer.set_step(epoch * len(train_data) + batch_idx)
-            self.writer.add_scalar('loss', loss.numpy(), global_step=batch_idx)
+            self.writer.add_scalar('loss', loss.numpy())
         
         # 에포크 평균 손실값 계산
         log = {'loss': total_loss / len(train_data)}
         
         # 검증 수행 (선택적)
         if self.do_validation:
-            val_log = self._valid_epoch(epoch)
+            val_log = self._valid_epoch(epoch, valid_data)
             log.update(val_log)
 
         # 학습률 조정 (선택적)
-        if self.lr_scheduler is not None:
-            self.lr_scheduler.step()
+        #if self.lr_scheduler is not None:
+        #    self.lr_scheduler.step()
 
         return log
 
 
-    def _valid_epoch(self, epoch):
+    def _valid_epoch(self, epoch, valid_data):
         # Validation 로직 추가
         val_loss = 0
+        
         # Validation 데이터 로더를 사용해 평가
-        for batch_idx in range(len(self.valid_data_loader)):  # valid_data_loader의 길이만큼 반복
-            data, target = self.valid_data_loader[batch_idx]
-            data, target = data.to(self.device), target.to(self.device)
+        for batch_idx, (data, label) in enumerate(valid_data):
             output = self.model(data)
-            loss = self.criterion(target, output)
-            val_loss += loss.numpy()  # validation loss 누적
+            output = output - 1
+            label = label - 1
+            loss = self.criterion(label, output)
+            val_loss += loss.numpy()
 
-        return {'val_loss': val_loss / len(self.valid_data_loader)}  # 평균 validation loss 반환
+        return {'val_loss': val_loss / len(valid_data)}  # 평균 validation loss 반환

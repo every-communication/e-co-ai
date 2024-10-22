@@ -4,6 +4,7 @@ import numpy as np
 import tensorflow as tf
 import keras.src.optimizers as optimizers
 from data_loader.data_loader_factory import DataLoaderFactory
+from model.model_factory import ModelFactory
 import model.loss as module_loss
 import model.metric as module_metric
 import model as module_arch
@@ -24,7 +25,7 @@ def main(config):
     data_loader = DataLoaderFactory.get_data_loader(config['data_loader']['type'], dict(config['data_loader']['args']))
 
     # build model architecture, then print to console
-    model = config.init_obj('arch', module_arch)                
+    model = ModelFactory.get_model(config['arch']['type'], dict(config['arch']['args']))          
     logger.info(model) #TODO logger
 
     # prepare for (multi-device) GPU training
@@ -36,7 +37,8 @@ def main(config):
     metrics = [getattr(module_metric, met) for met in config['metrics']] #TODO metric
 
     # build optimizer
-    optimizer = config.init_obj('optimizer', optimizers)
+    #optimizer = config.init_obj('optimizer', optimizers)
+    optimizer = optimizers.Adam(learning_rate=config['optimizer']['args']['learning_rate'])
 
     trainer = Trainer(model, criterion, metrics, optimizer, config, device, data_loader)
 

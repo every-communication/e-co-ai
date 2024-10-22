@@ -62,9 +62,8 @@ def extract_keypoints_from_video(video_path):
         
         # 프레임의 좌우 손 키포인트와 얼굴 경계 상자 정보를 합쳐서 저장
         all_frame_keypoints.append(frame_keypoints)
-
     cap.release()
-    return frame_keypoints
+    return all_frame_keypoints
 
 # 비디오 파일에서 키포인트 추출 및 저장
 for root, dirs, files in os.walk(video_dir):
@@ -77,9 +76,14 @@ for root, dirs, files in os.walk(video_dir):
             # NPY 파일로 저장
             vocab = os.path.basename(root)
             output_file = os.path.join(keypoints_dir, vocab, f"{os.path.splitext(file)[0]}.npy")
+            
+            # 기존 파일이 있으면 삭제
+            if os.path.exists(output_file):
+                os.remove(output_file)
+                print(f"Existing file removed: {output_file}")
+            
             if not os.path.exists(os.path.dirname(output_file)):
                 os.makedirs(os.path.dirname(output_file))
-
             np.save(output_file, keypoints_data)  # 하나의 NPY 파일로 통합 저장
 
 print("Keypoints extraction complete!")
