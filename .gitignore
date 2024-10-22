@@ -37,4 +37,7 @@ out/
 .vscode/
 
 ### env ###
-vslt
+venv
+
+dataset/*
+main/saved/*
