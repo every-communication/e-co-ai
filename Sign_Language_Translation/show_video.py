@@ -6,7 +6,7 @@ from PIL import ImageFont, ImageDraw, Image
 fontpath = "fonts/HMKMMAG.TTF"
 font = ImageFont.truetype(fontpath, 40)
 
-videoFolderPath = "../dataset/output_video"
+videoFolderPath = "../dataset/output_video/output_video" #End
 videoTestList = os.listdir(videoFolderPath)
 
 testTargetList =[]

@@ -18,7 +18,8 @@ save_file_name = "train"
 seq_length = 10
 
 
-actions = ['ㄱ', 'ㄴ', 'ㄷ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅅ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ',
+actions = ['BackSpace', 'End',
+             'ㄱ', 'ㄴ', 'ㄷ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅅ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ',
              'ㅏ', 'ㅑ', 'ㅓ', 'ㅕ', 'ㅗ', 'ㅛ', 'ㅜ', 'ㅠ', 'ㅡ', 'ㅣ',
              'ㅐ', 'ㅒ', 'ㅔ', 'ㅖ', 'ㅢ', 'ㅚ', 'ㅟ']
 
@@ -52,10 +53,13 @@ print("----------  End Video List  ----------\n")
 for target in testTargetList:
 
     data = []
-    first_index = target.find("/")
-    second_index = target.find("/", first_index+1)
-    third_index = target.find("/", second_index+1)
-    idx = actions.index(target[target.find("/", second_index)+1:target.find("/", third_index)])
+    action_name = os.path.basename(os.path.dirname(target))
+    
+    try:
+        idx = actions.index(action_name)
+    except ValueError:
+        print(f"Action '{action_name}' not found in the actions list.")
+        continue
 
     print("Now Streaming :", target)
     cap = cv2.VideoCapture(target)
@@ -142,14 +146,12 @@ for target in testTargetList:
     for seq in range(len(data) - seq_length):
         dataset[idx].append(data[seq:seq + seq_length])    
 
-'''
 for i in range(len(actions)):
     save_data = np.array(dataset[i])
-    np.save(os.path.join('dataset', f'seq_{actions[i]}_{created_time}'), save_data)
+    np.save(os.path.join('../dataset', f'seq_{actions[i]}_{created_time}'), save_data)
 
 
 print("\n---------- Finish Save Dataset ----------")
-'''
 
 
 

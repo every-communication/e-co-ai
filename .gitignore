@@ -39,5 +39,6 @@ out/
 ### env ###
 venv
 
-dataset/*
+#dataset/*
+*.zip
 main/saved/*
