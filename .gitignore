@@ -39,6 +39,11 @@ out/
 ### env ###
 venv
 
-dataset/*
+npy_files/*
+dataset/keypoints
+dataset/processed_video
+dataset/raw_video
+dataset/total
+
 *.zip
 main/saved/*

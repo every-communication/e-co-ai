@@ -12,7 +12,7 @@ fontpath = "fonts/HMKMMAG.TTF"
 font = ImageFont.truetype(fontpath, 40)
 
 
-actions = ['ㄱ', 'ㄴ', 'ㄷ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅅ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ',
+actions = ['End', 'BackSpace', 'ㄱ', 'ㄴ', 'ㄷ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅅ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ',
              'ㅏ', 'ㅑ', 'ㅓ', 'ㅕ', 'ㅗ', 'ㅛ', 'ㅜ', 'ㅠ', 'ㅡ', 'ㅣ',
              'ㅐ', 'ㅒ', 'ㅔ', 'ㅖ', 'ㅢ', 'ㅚ', 'ㅟ']
 seq_length = 10
@@ -29,7 +29,7 @@ input_details = interpreter.get_input_details()
 output_details = interpreter.get_output_details()
 
 # test video path
-videoFolderPath = "../dataset/temp"
+videoFolderPath = "../dataset/output_video"
 videoTestList = os.listdir(videoFolderPath)
 
 testTargetList =[]

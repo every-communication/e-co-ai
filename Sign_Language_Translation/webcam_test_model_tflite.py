@@ -6,7 +6,7 @@ import mediapipe as mp
 import numpy as np
 import tensorflow as tf
 import modules.holistic_module as hm
-from tensorflow.keras.models import load_model
+from tensorflow.python.keras.models import load_model
 import math
 from modules.utils import Vector_Normalization
 from PIL import ImageFont, ImageDraw, Image
@@ -15,7 +15,7 @@ from PIL import ImageFont, ImageDraw, Image
 fontpath = "fonts/HMKMMAG.TTF"
 font = ImageFont.truetype(fontpath, 40)
 
-actions = ['ㄱ', 'ㄴ', 'ㄷ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅅ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ',
+actions = ['End', 'BackSpace', 'ㄱ', 'ㄴ', 'ㄷ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅅ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ',
              'ㅏ', 'ㅑ', 'ㅓ', 'ㅕ', 'ㅗ', 'ㅛ', 'ㅜ', 'ㅠ', 'ㅡ', 'ㅣ',
              'ㅐ', 'ㅒ', 'ㅔ', 'ㅖ', 'ㅢ', 'ㅚ', 'ㅟ']
 seq_length = 10
