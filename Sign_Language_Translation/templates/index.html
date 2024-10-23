@@ -1,0 +1,46 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Language Recognition</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+        #video-frame {
+            border: 2px solid #ddd;
+            margin-bottom: 20px;
+        }
+        #result {
+            font-size: 24px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Real-Time Sign Language Recognition</h1>
+    <img id="video-frame" src="{{ url_for('video_feed') }}" alt="Video Feed">
+    <div id="result">Action: </div>
+
+    <script>
+        function updateAction() {
+            fetch('/action')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('result').textContent = 'Action: ' + data.action;
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        // Update action every second
+        setInterval(updateAction, 1000);
+    </script>
+</body>
+</html>

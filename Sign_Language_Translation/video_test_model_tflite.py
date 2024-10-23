@@ -29,7 +29,8 @@ input_details = interpreter.get_input_details()
 output_details = interpreter.get_output_details()
 
 # test video path
-videoFolderPath = "../dataset/output_video"
+#videoFolderPath = "../dataset/output_video"
+videoFolderPath = "../dataset/temp"
 videoTestList = os.listdir(videoFolderPath)
 
 testTargetList =[]
@@ -136,6 +137,6 @@ for target in testTargetList:
 
 
         cv2.imshow('img', img)
-        if cv2.waitKey(1) & 0xFF == 27:
+        if cv2.waitKey(3) & 0xFF == 27:
             break
 
