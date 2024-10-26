@@ -1,46 +1,44 @@
-<!-- templates/index.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Language Recognition</title>
-    <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f0f0f0;
-        }
-        #video-frame {
-            border: 2px solid #ddd;
-            margin-bottom: 20px;
-        }
-        #result {
-            font-size: 24px;
-            font-weight: bold;
-        }
-    </style>
+    <title>실시간 수어 번역</title>
 </head>
 <body>
-    <h1>Real-Time Sign Language Recognition</h1>
-    <img id="video-frame" src="{{ url_for('video_feed') }}" alt="Video Feed">
-    <div id="result">Action: </div>
+    <video id="webcam" autoplay></video>
+    <p id="result"></p>
 
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
     <script>
-        function updateAction() {
-            fetch('/action')
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('result').textContent = 'Action: ' + data.action;
-                })
-                .catch(error => console.error('Error:', error));
+        const video = document.getElementById('webcam');
+        const result = document.getElementById('result');
+        const socket = io.connect('http://localhost:5000');
+
+        navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+            video.srcObject = stream;
+            setInterval(() => {
+                captureAndSendFrame();
+            }, 1000); // 프레임 전송 간격 (1초마다 전송)
+        });
+
+        function captureAndSendFrame() {
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            canvas.toBlob(blob => {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    socket.emit('image', { image: reader.result });
+                };
+                reader.readAsArrayBuffer(blob);
+            });
         }
 
-        // Update action every second
-        setInterval(updateAction, 1000);
+        socket.on('response', data => {
+            result.textContent = '번역 결과: ' + data.result;
+        });
     </script>
 </body>
 </html>
