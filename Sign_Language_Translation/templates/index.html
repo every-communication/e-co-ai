@@ -2,43 +2,18 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>실시간 수어 번역</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <video id="webcam" autoplay></video>
-    <p id="result"></p>
+    <div class="container">
+        <h1>실시간 수어 번역</h1>
+        <video id="webcam" autoplay></video>
+        <p id="result">번역 결과: <span id="action"></span></p>
+    </div>
 
     <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
-    <script>
-        const video = document.getElementById('webcam');
-        const result = document.getElementById('result');
-        const socket = io.connect('http://localhost:5000');
-
-        navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
-            video.srcObject = stream;
-            setInterval(() => {
-                captureAndSendFrame();
-            }, 1000); // 프레임 전송 간격 (1초마다 전송)
-        });
-
-        function captureAndSendFrame() {
-            const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            const context = canvas.getContext('2d');
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-            canvas.toBlob(blob => {
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                    socket.emit('image', { image: reader.result });
-                };
-                reader.readAsArrayBuffer(blob);
-            });
-        }
-
-        socket.on('response', data => {
-            result.textContent = '번역 결과: ' + data.result;
-        });
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>

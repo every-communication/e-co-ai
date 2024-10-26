@@ -1,21 +1,36 @@
-async function fetchGesture() {
-    try {
-        const response = await fetch('/gesture_data');
-        if (!response.ok) throw new Error('네트워크 오류가 발생했습니다.');
-        
-        const data = await response.json();
-        const gestureElement = document.getElementById('gesture');
-        
-        if (data.action && data.action !== "no_hand_detected") {
-            gestureElement.textContent = data.action;
-        } else {
-            gestureElement.textContent = "인식 중...";
-        }
-    } catch (error) {
-        console.error('제스처 데이터를 가져오는 중 오류 발생:', error);
-        document.getElementById('gesture').textContent = "오류 발생";
-    }
+const video = document.getElementById('webcam');
+const actionText = document.getElementById('action');
+const socket = io.connect('http://localhost:5000');
+
+// 웹캠 접근 권한 요청 및 스트림 설정
+navigator.mediaDevices.getUserMedia({ video: true })
+    .then(stream => {
+        video.srcObject = stream;
+        setInterval(captureAndSendFrame, 1000);  // 1초마다 프레임 전송
+    })
+    .catch(error => {
+        console.error("웹캠 접근 실패:", error);
+    });
+
+// 캡처한 프레임을 서버에 전송하는 함수
+function captureAndSendFrame() {
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const context = canvas.getContext('2d');
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    // 캡처된 프레임을 Blob 형식으로 변환하여 전송
+    canvas.toBlob(blob => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            socket.emit('image', { image: reader.result });
+        };
+        reader.readAsArrayBuffer(blob);
+    });
 }
 
-// 주기적으로 제스처 데이터를 가져오는 함수 호출
-setInterval(fetchGesture, 1000);  // 1초마다 제스처 데이터를 업데이트
+// 서버로부터 번역 결과를 받았을 때 화면에 표시
+socket.on('response', data => {
+    actionText.textContent = data.result ? data.result : "인식 중...";
+});
