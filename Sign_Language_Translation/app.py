@@ -38,11 +38,19 @@ def process_image(image_data):
 
     # 이미지를 디코딩하고 전처리
     img = cv2.imdecode(np.frombuffer(image_data, np.uint8), cv2.IMREAD_COLOR)
+
+    if img is None:
+        print("이미지 디코딩 실패")
+        return None
+
     img = detector.findHolistic(img, draw=True)
     _, right_hand_lmList = detector.findRighthandLandmark(img)
 
     if right_hand_lmList is not None:
+
+        print("랜드마크 인식 완료")
         joint = np.zeros((42, 2))
+
         for j, lm in enumerate(right_hand_lmList.landmark):
             joint[j] = [lm.x, lm.y]
 
@@ -62,24 +70,33 @@ def process_image(image_data):
         interpreter.invoke()
 
         y_pred = interpreter.get_tensor(output_details[0]['index'])
+        print(f"모델 출력: {y_pred}")
+
         i_pred = int(np.argmax(y_pred[0]))
         conf = y_pred[0][i_pred]
 
-        if conf >= 0.5:
+        if conf >= 0.3:
             action = actions[i_pred]
             action_seq.append(action)
 
             if len(action_seq) >= consecutive_threshold and all(x == action for x in action_seq[-consecutive_threshold:]):
                 last_action = action
                 action_seq = []  # 예측 결과를 갱신한 후 시퀀스를 초기화
-
+        else:
+            print("모델 자신도 부족")
+    else:
+        print("랜드마크 인식 실패")
     return last_action
 
 # WebSocket을 통한 이미지 수신 및 처리
 @socketio.on('image')
 def handle_image(data):
     image_data = data['image']  # 클라이언트에서 전송된 이미지를 가져옴
+    print("이미지 수신 완료!")
+
     result = process_image(image_data)
+    print(f"처리 결과: {result}")
+
     emit('response', {'result': result})  # 처리 결과를 클라이언트로 반환
 
 @app.route('/')

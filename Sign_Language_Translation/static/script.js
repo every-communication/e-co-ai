@@ -32,5 +32,6 @@ function captureAndSendFrame() {
 
 // 서버로부터 번역 결과를 받았을 때 화면에 표시
 socket.on('response', data => {
+    console.log('서버 응답:', data);
     actionText.textContent = data.result ? data.result : "인식 중...";
 });
