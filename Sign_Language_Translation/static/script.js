@@ -1,6 +1,6 @@
 const video = document.getElementById('webcam');
 const actionText = document.getElementById('action');
-const socket = io.connect('http://localhost:5000');
+const socket = io.connect('http://localhost:8000');
 
 // 웹캠 접근 권한 요청 및 스트림 설정
 navigator.mediaDevices.getUserMedia({ video: true })
