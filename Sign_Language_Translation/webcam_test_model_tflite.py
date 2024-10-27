@@ -10,12 +10,13 @@ from tensorflow.python.keras.models import load_model
 import math
 from modules.utils import Vector_Normalization
 from PIL import ImageFont, ImageDraw, Image
+from modules import unicode
 # from unicode import join_jamos
 
 fontpath = "fonts/HMKMMAG.TTF"
 font = ImageFont.truetype(fontpath, 40)
 
-actions = ['End', 'BackSpace', 'ㄱ', 'ㄴ', 'ㄷ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅅ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ',
+actions = ['ㄱ', 'ㄴ', 'ㄷ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅅ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ',
              'ㅏ', 'ㅑ', 'ㅓ', 'ㅕ', 'ㅗ', 'ㅛ', 'ㅜ', 'ㅠ', 'ㅡ', 'ㅣ',
              'ㅐ', 'ㅒ', 'ㅔ', 'ㅖ', 'ㅢ', 'ㅚ', 'ㅟ']
 seq_length = 10
@@ -33,6 +34,8 @@ output_details = interpreter.get_output_details()
 
 cap = cv2.VideoCapture(0)
 
+sen = ""
+res = ""
 seq = []
 action_seq = []
 last_action = None
@@ -110,7 +113,7 @@ while cap.isOpened():
         this_action = '?'
         if action_seq[-1] == action_seq[-2] == action_seq[-3]:
             this_action = action
-
+            sen, res = unicode.process_word(sen, action)
             if last_action != this_action:
                 last_action = this_action
         '''
@@ -131,7 +134,7 @@ while cap.isOpened():
                   font=font, 
                   fill=(255, 255, 255))
         '''
-        draw.text((10, 30), f'{action.upper()}', font=font, fill=(255, 255, 255))
+        draw.text((10, 30), f'{res}', font=font, fill=(255, 255, 255))
 
         img = np.array(img_pil)
 

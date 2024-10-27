@@ -7,7 +7,7 @@ import tensorflow as tf
 import modules.holistic_module as hm
 from modules.utils import Vector_Normalization
 from PIL import ImageFont, ImageDraw, Image
-from .modules import unicode
+from modules import unicode
 import io
 
 app = Flask(__name__)
@@ -38,7 +38,7 @@ emitted_result = None
 
 # 이미지를 처리하고 예측 결과를 반환하는 함수
 def process_image(image_data):
-    global sen, res, action_seq, seq
+    global sen, res, action_seq, seq, last_action
     #consecutive_threshold = 2  # 동일한 예측이 몇 프레임 이상 연속되어야 하는지
 
     # 이미지를 디코딩하고 전처리
@@ -126,4 +126,4 @@ def index():
     return render_template('index.html')
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=5000)
+    socketio.run(app, host='0.0.0.0', port=8000)

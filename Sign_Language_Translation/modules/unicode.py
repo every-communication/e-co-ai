@@ -311,6 +311,10 @@ def join_jamos(s, ignore_err=True):
 dc_befor = ['ㄱ', 'ㄷ', 'ㅂ', 'ㅅ', 'ㅈ']
 dc_after = ['ㄲ', 'ㄸ', 'ㅃ', 'ㅆ', 'ㅉ']
 def process_word(sentence, c):
+    if len(sentence) > 0:
+        if sentence[-1] == c:
+            return sentence, join_jamos(sentence)
+    
     if c == 'End': # TODO: 나중에 Space로 바꿔야 함
         sentence = sentence + " "
 
