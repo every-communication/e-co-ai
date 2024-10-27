@@ -7,13 +7,15 @@ import tensorflow as tf
 import modules.holistic_module as hm
 from modules.utils import Vector_Normalization
 from PIL import ImageFont, ImageDraw, Image
+from .modules import unicode
 import io
 
 app = Flask(__name__)
 CORS(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-actions = ['End', 'BackSpace', 'ㄱ', 'ㄴ', 'ㄷ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅅ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ',
+actions = ['End', 'BackSpace', 'Double', 'Clear'
+           'ㄱ', 'ㄴ', 'ㄷ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅅ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ',
            'ㅏ', 'ㅑ', 'ㅓ', 'ㅕ', 'ㅗ', 'ㅛ', 'ㅜ', 'ㅠ', 'ㅡ', 'ㅣ',
            'ㅐ', 'ㅒ', 'ㅔ', 'ㅖ', 'ㅢ', 'ㅚ', 'ㅟ']
 
@@ -27,14 +29,16 @@ interpreter.allocate_tensors()
 input_details = interpreter.get_input_details()
 output_details = interpreter.get_output_details()
 
-seq = []
+sen = ""
+res = ""
 action_seq = []
-last_action = None
+
+emitted_result = None
 
 # 이미지를 처리하고 예측 결과를 반환하는 함수
 def process_image(image_data):
-    global last_action, seq, action_seq
-    consecutive_threshold = 3  # 동일한 예측이 몇 프레임 이상 연속되어야 하는지
+    global sep_sen, sep_wd, action_seq
+    #consecutive_threshold = 2  # 동일한 예측이 몇 프레임 이상 연속되어야 하는지
 
     # 이미지를 디코딩하고 전처리
     img = cv2.imdecode(np.frombuffer(image_data, np.uint8), cv2.IMREAD_COLOR)
@@ -57,13 +61,8 @@ def process_image(image_data):
         vector, angle_label = Vector_Normalization(joint)
         d = np.concatenate([vector.flatten(), angle_label.flatten()])
 
-        seq.append(d)
-
-        if len(seq) < seq_length:
-            return None  # 충분한 시퀀스가 쌓이지 않으면 None 반환
-
         # TensorFlow Lite 모델에 입력
-        input_data = np.expand_dims(np.array(seq[-seq_length:], dtype=np.float32), axis=0)
+        input_data = np.expand_dims(np.array(d, dtype=np.float32), axis=0)
         input_data = np.array(input_data, dtype=np.float32)
 
         interpreter.set_tensor(input_details[0]['index'], input_data)
@@ -75,18 +74,25 @@ def process_image(image_data):
         i_pred = int(np.argmax(y_pred[0]))
         conf = y_pred[0][i_pred]
 
-        if conf >= 0.3:
-            action = actions[i_pred]
-            action_seq.append(action)
-
-            if len(action_seq) >= consecutive_threshold and all(x == action for x in action_seq[-consecutive_threshold:]):
-                last_action = action
-                action_seq = []  # 예측 결과를 갱신한 후 시퀀스를 초기화
-        else:
+        # 모델 자신도 떨어지면 패스
+        if conf < 0.1: # TODO: 올려야 함
             print("모델 자신도 부족")
+
+        # 충분한 중복이 버퍼 쌓아
+        elif len(action_seq < 3):
+            action_seq.append(y_pred)
+
+        # 충분히 쌓였을 때 마지막 3개가 같아야 함
+        elif action_seq[-1] == action_seq[-2] == action_seq[-3]:
+            sen, res = unicode.process_word(sen, action_seq[-1])   
+            action_seq.clear
+    
+        # 마지막 3개가 다르면 계속 쌓아
+        else:
+            action_seq.append(y_pred)
     else:
         print("랜드마크 인식 실패")
-    return last_action
+    return res
 
 # WebSocket을 통한 이미지 수신 및 처리
 @socketio.on('image')
@@ -95,9 +101,13 @@ def handle_image(data):
     print("이미지 수신 완료!")
 
     result = process_image(image_data)
-    print(f"처리 결과: {result}")
+    print(f"처리 결과 문장: {result}")
 
-    emit('response', {'result': result})  # 처리 결과를 클라이언트로 반환
+    if result == emitted_result:
+        print("전송하지 않음")
+    else:
+        emitted_result = result
+        emit('response', {'sentence': result})  # 처리 결과를 클라이언트로 반환
 
 @app.route('/')
 def index():

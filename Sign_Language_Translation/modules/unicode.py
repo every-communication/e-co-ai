@@ -1,7 +1,3 @@
-__all__ = ["split_syllable_char", "split_syllables",
-           "join_jamos", "join_jamos_char",
-           "CHAR_INITIALS", "CHAR_MEDIALS", "CHAR_FINALS"]
-
 # 자음모음 결합용
 import itertools
 
@@ -138,7 +134,7 @@ def split_syllable_char(c):
                  for pos, idx in
                  zip([INITIAL, MEDIAL, FINAL], [init, med, final]))
 
-
+# 어절(단어) -> 음소(자모)
 def split_syllables(s, ignore_err=True, pad=None):
     """
     Performs syllable-split on a string.
@@ -180,8 +176,35 @@ def split_syllables(s, ignore_err=True, pad=None):
         tuples = map(lambda x: filter(None, x), s)
     return "".join(itertools.chain(*tuples))
 
+def comb_final_sub(c1, c2):
+    if c1 == 'ㄱ' and c2 == 'ㅅ':
+        return 'ㄳ'
+    if c1 == 'ㄴ':
+        if c2 == 'ㅈ':
+            return 'ㄵ'
+        if c2 == 'ㅎ':
+            return 'ㄶ'
+    if c1 == 'ㄹ':
+        if c2 == 'ㄱ':
+            return 'ㄺ'
+        if c2 == 'ㅁ':
+            return 'ㄻ'
+        if c2 == 'ㅂ':
+            return 'ㄼ'
+        if c2 == 'ㅅ':
+            return 'ㄽ'
+        if c2 == 'ㅌ':
+            return 'ㄾ'
+        if c2 == 'ㅍ':
+            return 'ㄿ'
+        if c2 == 'ㅎ':
+            return 'ㅀ'
+    if c1 == 'ㅂ' and c2 == 'ㅅ':
+        return 'ㅄ'
+    return None
 
-def join_jamos_char(init, med, final=None):
+# 음소(자모) -> 음절
+def join_jamos_char(init, med, final=None, sub=None):
     """
     Combines jamos into a single syllable.
 
@@ -194,6 +217,11 @@ def join_jamos_char(init, med, final=None):
     Returns:
         A Korean syllable.
     """
+    if sub is not None:
+        combined_final = comb_final_sub(final, sub)
+        if combined_final:
+            final = combined_final
+            
     chars = (init, med, final)
     for c in filter(None, chars):
         check_hangul(c, jamo_only=True)
@@ -206,7 +234,7 @@ def join_jamos_char(init, med, final=None):
     final_idx = 0 if final_idx is None else final_idx + 1
     return chr(0xac00 + 28 * 21 * init_idx + 28 * med_idx + final_idx)
 
-
+# 음소(자모) -> 어절(단어)
 def join_jamos(s, ignore_err=True):
     """
     Combines a sequence of jamos to produce a sequence of syllables.
@@ -278,3 +306,39 @@ def join_jamos(s, ignore_err=True):
     if queue:
         new_string += flush()
     return new_string
+
+
+dc_befor = ['ㄱ', 'ㄷ', 'ㅂ', 'ㅅ', 'ㅈ']
+dc_after = ['ㄲ', 'ㄸ', 'ㅃ', 'ㅆ', 'ㅉ']
+def process_word(sentence, c):
+    if c == 'End': # TODO: 나중에 Space로 바꿔야 함
+        sentence = sentence + " "
+
+    elif c == 'BackSpace':
+        if len(sentence) != 0:
+            sentence = sentence[:-1]
+    
+    elif c == 'Double':
+        for i in range(len(dc_befor)):
+            if sentence[-1] == dc_befor[i]:
+                sentence = sentence[:-1]
+                sentence += dc_after[i]
+
+    elif c == 'Clear':
+        sentence = ""
+
+    else:
+        sentence += c
+    
+    result = join_jamos(sentence)
+    return sentence, result
+
+
+if __name__=="__main__":
+    s = ""
+    while True:
+        w = input("입력:")
+        s, res = process_word(s, w)
+
+        print("문장 : ", s)
+        print("결과 : ", res)
