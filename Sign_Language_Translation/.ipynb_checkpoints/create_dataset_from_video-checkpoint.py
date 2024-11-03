@@ -54,8 +54,7 @@ testTargetList = sorted(testTargetList, key=lambda x: x[0][x[0].find("/", 9) + 1
 print([path for path, _ in testTargetList])
 print("----------  End Video List  ----------\n")
 
-for target_info in testTargetList:
-    target, video_number = target_info  # 튜플의 경로와 비디오 번호를 분리
+for target in testTargetList:
 
     data = []
     action_name = os.path.basename(os.path.dirname(target))
@@ -164,11 +163,7 @@ for i in range(len(actions)):
     base_path = "../dataset/npy"
     base_filename = f'seq_{actions[i]}_{created_time}'
     unique_filename = get_unique_filename(base_path, base_filename, 'npy')
-    full_path = os.path.join(base_path, unique_filename)
-    print(f"Saving file: {full_path}")
-    
-    np.save(full_path, save_data)
-
+    np.save(os.path.join(base_path, unique_filename), save_data)
 
 
 print("\n---------- Finish Save Dataset ----------")

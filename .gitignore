@@ -45,5 +45,7 @@ dataset/processed_video
 dataset/raw_video
 dataset/total
 
+*.npy
+*.avi
 *.zip
 main/saved/*
