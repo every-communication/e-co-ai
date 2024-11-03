@@ -279,6 +279,130 @@ def join_jamos(s, ignore_err=True):
             result = None
         return result
 
+    # Check Medial Index
+    medial_index = []
+    for i in range(len(s)):
+        if s[i] in CHARSET:
+            t = get_jamo_type(s[i])
+        else:
+            t = 0
+
+        if t == MEDIAL:
+            medial_index.append(i)
+    
+    last_index = -1
+    for i in range(len(medial_index)):
+        if medial_index[i] == last_index + 1: # 모음으로 시작
+            new_string += s[medial_index[i]]
+            last_index = medial_index[i]
+        else:
+            # 이전까지 값 넣음
+            for t in range(last_index + 1, medial_index[i] - 1):
+                new_string += s[t]
+                last_index = t
+            
+            # 5개의 글자의 인덱스
+            twi = []
+            for t in range(medial_index[i] - 1, medial_index[i] + 4):
+                if t < len(s):
+                    twi.append(t)
+            
+            if s[twi[0]] in CHARSET:
+                t = get_jamo_type(s[twi[0]])
+            else:
+                t = 0
+            if t & INITIAL != INITIAL:
+                new_string += s[twi[0]]
+                last_index = twi[0]
+                continue
+            
+            queue.insert(0, s[twi[0]])
+            
+            insert_into_new_string = False
+            # 모음 위치 기반 처리
+            for j in range(len(twi)):
+                insert_into_new_string = False
+                if s[twi[j]] in CHARSET:
+                    t = get_jamo_type(s[twi[j]])
+                else:
+                    t = 0
+                
+                if t == MEDIAL:
+                    if j == 1: # 현재 음절
+                        queue.insert(0, s[twi[1]])
+                        continue
+                    
+                    if j == 2 or j == 3: # 자 모 모 or 자 모 자 모
+                        new_string += flush()
+                        last_index = twi[1]
+                        insert_into_new_string = True
+                        break
+                    
+                    if j == 4: # 자 모 자 자 모
+                        if s[twi[2]] in CHARSET:
+                            t_next = get_jamo_type(s[twi[2]])
+                        else:
+                            t_next = 0
+
+                        if t_next & FINAL == FINAL:
+                            queue.insert(0, s[twi[2]])
+                            new_string += flush()
+                        else:
+                            new_string += flush() + s[twi[2]]
+                        last_index = twi[2]
+                        insert_into_new_string = True
+                        break
+            
+            if insert_into_new_string:
+                continue
+                
+            # 자 모 자 자 자 and 받침 안 넣은 상태
+            if len(twi) == 2:
+                new_string += flush()
+                last_index = twi[1]
+                continue
+            
+            if len(twi) == 3:
+                if s[twi[2]] in CHARSET:
+                    t_next = get_jamo_type(s[twi[2]])
+                else:
+                    t_next = 0
+
+                if t_next & FINAL == FINAL:
+                    queue.insert(0, s[twi[2]])
+                    new_string += flush()
+                else:
+                    new_string += flush() + s[twi[2]]
+                last_index = twi[2]
+                continue
+
+            if comb_final_sub(s[twi[2]], s[twi[3]]):
+                queue.insert(0, s[twi[2]])
+                queue.insert(0, s[twi[3]])
+                new_string += flush()
+                last_index = twi[3]
+                continue
+            else:
+                if s[twi[2]] in CHARSET:
+                    t_next = get_jamo_type(s[twi[2]])
+                else:
+                    t_next = 0
+                if t_next & FINAL == FINAL:
+                    queue.insert(0, s[twi[2]])
+                    new_string += flush() + s[twi[3]]
+                else:
+                    new_string += flush() + s[twi[2]] + s[twi[3]]
+                last_index = twi[3]
+                continue
+            
+
+    for remain_char_index in range(last_index + 1, len(s)):
+        new_string += s[remain_char_index]
+
+    return new_string
+
+            
+    """         
     for c in s:
         if c not in CHARSET:
             if queue:
@@ -306,19 +430,22 @@ def join_jamos(s, ignore_err=True):
     if queue:
         new_string += flush()
     return new_string
+    
+    """
 
 
 dc_befor = ['ㄱ', 'ㄷ', 'ㅂ', 'ㅅ', 'ㅈ']
 dc_after = ['ㄲ', 'ㄸ', 'ㅃ', 'ㅆ', 'ㅉ']
 def process_word(sentence, c):
+    """ TODO 문제 발생 시 중복 안되게 막으면 됨
     if len(sentence) > 0:
         if sentence[-1] == c:
             return sentence, join_jamos(sentence)
-    
-    if c == 'End': # TODO: 나중에 Space로 바꿔야 함
+    """
+    if c == 'Space':
         sentence = sentence + " "
 
-    elif c == 'BackSpace':
+    elif c == 'Back':
         if len(sentence) != 0:
             sentence = sentence[:-1]
     
@@ -342,7 +469,14 @@ if __name__=="__main__":
     s = ""
     while True:
         w = input("입력:")
+        if w == 'q':
+            break
+
         s, res = process_word(s, w)
 
         print("문장 : ", s)
         print("결과 : ", res)
+
+    temp = ['간', '다', '갊', '가나']
+    for word in temp:
+        print(split_syllables(word))

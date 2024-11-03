@@ -121,6 +121,31 @@ def handle_image(data):
         emitted_result = result
         emit('response', {'result': result})  # 처리 결과를 클라이언트로 반환
 
+@socketio.on('reset_session')
+def reset_session():
+    global res, sen, emitted_result, action_seq, last_action, seq
+    res = ""
+    sen = ""
+    emitted_result = None
+    action_seq = []
+    last_action = None
+    seq = []
+
+    print("세션 초기화 완료")
+    emit('session_reset', {'message': 'Session reset successful.'})
+
+
+    """
+    이런 식으로 프론트에서 화상통화에 접속할 때 한번 쏴주면 좋을 듯
+    // 소켓 연결이 되어 있는 상태에서 이벤트 전송
+    socket.emit('reset_session');
+
+    // 서버에서의 응답 처리
+    socket.on('session_reset', (data) => {
+    console.log(data.message); // "Session reset successful." 메시지를 출력
+    });
+    """
+
 @app.route('/')
 def index():
     return render_template('index.html')
