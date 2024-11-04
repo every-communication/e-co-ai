@@ -46,6 +46,8 @@ dataset/raw_video
 dataset/total
 dataset/output_video/*
 
+__pacach__
+test_directory/
 *.npy
 *.avi
 *.zip
