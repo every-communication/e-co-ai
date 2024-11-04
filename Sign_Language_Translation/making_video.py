@@ -12,11 +12,14 @@ font = ImageFont.truetype(fontpath, 40)
 createDirectory('../dataset')
 
 # 손가락 통증 이슈로 나누어 찍기
-# actions = ['ㄱ', 'ㄴ', 'ㄷ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅅ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ']
-# actions = ['ㅏ', 'ㅑ', 'ㅓ', 'ㅕ', 'ㅗ', 'ㅛ', 'ㅜ', 'ㅠ', 'ㅡ', 'ㅣ']
-# actions = ['ㅗ', 'ㅛ', 'ㅜ']
-# actions = ['ㅐ', 'ㅒ', 'ㅔ', 'ㅖ', 'ㅢ', 'ㅚ', 'ㅟ']
-actions = ['End', 'BackSpace']
+# actions = ['Back', 'Clear', 'Double', 'Space']
+# actions = ['ㄱ', 'ㄴ', 'ㄷ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅅ']
+# actions = ['ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ']
+# actions = ['ㅏ', 'ㅑ', 'ㅓ', 'ㅕ']
+# actions = ['ㅗ', 'ㅛ', 'ㅜ', 'ㅠ', 'ㅡ', 'ㅣ']
+# actions = ['ㅐ', 'ㅔ', 'ㅚ', 'ㅟ', 'ㅒ', 'ㅖ', 'ㅢ']
+
+# actions = ['ㅓ', 'ㅕ', 'ㅔ', 'ㅖ']
 # seq_length = 10
 secs_for_action = 30
 
