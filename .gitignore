@@ -39,15 +39,16 @@ out/
 ### env ###
 venv
 
+### dataset ###
 npy_files/*
 dataset/keypoints
 dataset/processed_video
 dataset/raw_video
 dataset/total
 dataset/output_video/*
-
-__pacach__
 test_directory/
+
+*.jpg
 *.npy
 *.avi
 *.zip

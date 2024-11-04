@@ -437,11 +437,11 @@ def join_jamos(s, ignore_err=True):
 dc_befor = ['ㄱ', 'ㄷ', 'ㅂ', 'ㅅ', 'ㅈ']
 dc_after = ['ㄲ', 'ㄸ', 'ㅃ', 'ㅆ', 'ㅉ']
 def process_word(sentence, c):
-    """ TODO 문제 발생 시 중복 안되게 막으면 됨
+    #TODO 문제 발생 시 중복 안되게 막으면 됨
     if len(sentence) > 0:
         if sentence[-1] == c:
             return sentence, join_jamos(sentence)
-    """
+    
     if c == 'Space':
         sentence = sentence + " "
 

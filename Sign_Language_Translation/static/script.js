@@ -3,10 +3,11 @@ const actionText = document.getElementById('action');
 const socket = io.connect('http://localhost:8000');
 
 // 웹캠 접근 권한 요청 및 스트림 설정
+var res;
 navigator.mediaDevices.getUserMedia({ video: true })
     .then(stream => {
         video.srcObject = stream;
-        setInterval(captureAndSendFrame, 1000);  // 1초마다 프레임 전송
+        setInterval(captureAndSendFrame, 200);  // 1초마다 프레임 전송
     })
     .catch(error => {
         console.error("웹캠 접근 실패:", error);
@@ -33,5 +34,7 @@ function captureAndSendFrame() {
 // 서버로부터 번역 결과를 받았을 때 화면에 표시
 socket.on('response', data => {
     console.log('서버 응답:', data);
-    actionText.textContent = data.result ? data.result : "인식 중...";
+    res = data.result ? data.result : res
+    //actionText.textContent = data.result ? data.result : "인식 중...";
+    actionText.textContent = res;
 });

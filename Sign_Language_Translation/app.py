@@ -10,6 +10,9 @@ from PIL import ImageFont, ImageDraw, Image
 from modules import unicode
 import io
 
+import os
+from datetime import datetime
+
 app = Flask(__name__)
 CORS(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
@@ -20,7 +23,7 @@ actions = [ 'Back', 'Clear', 'Double', 'Space',
            'ㅐ', 'ㅒ', 'ㅔ', 'ㅖ', 'ㅢ', 'ㅚ', 'ㅟ']
 
 seq_length = 10
-detector = hm.HolisticDetector(min_detection_confidence=0.3)
+detector = hm.HolisticDetector(min_detection_confidence=0.5)
 
 # Load TFLite model and allocate tensors.
 interpreter = tf.lite.Interpreter(model_path="..\\models\\multi_hand_gesture_classifier.tflite")
@@ -40,10 +43,22 @@ emitted_result = None
 # 이미지를 처리하고 예측 결과를 반환하는 함수
 def process_image(image_data):
     global sen, res, action_seq, seq, last_action
-    #consecutive_threshold = 2  # 동일한 예측이 몇 프레임 이상 연속되어야 하는지
+    consecutive_threshold = 2  # 동일한 예측이 몇 프레임 이상 연속되어야 하는지
 
     # 이미지를 디코딩하고 전처리
     img = cv2.imdecode(np.frombuffer(image_data, np.uint8), cv2.IMREAD_COLOR)
+
+    """# START
+    output_directory = "test_directory"
+    if not os.path.exists(output_directory):
+        os.makedirs(output_directory)
+    current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
+    output_filename = f"debug_image_{current_time}.jpg"
+    output_path = os.path.join(output_directory, output_filename)
+    img = cv2.convertScaleAbs(img, alpha=1.2, beta=30)
+    cv2.imwrite(output_path, img)
+    print("Image shape", img.shape)
+    # END"""
 
     if img is None:
         print("이미지 디코딩 실패")
@@ -76,13 +91,13 @@ def process_image(image_data):
         interpreter.invoke()
 
         y_pred = interpreter.get_tensor(output_details[0]['index'])
-        print(f"모델 출력: {y_pred}")
+        #print(f"모델 출력: {y_pred}")
 
         i_pred = int(np.argmax(y_pred[0]))
         conf = y_pred[0][i_pred]
 
         # 모델 자신도 떨어지면 패스
-        if conf < 0.9: # TODO: 올려야 함
+        if conf < 0.95: # TODO: 올려야 함
             print("모델 자신도 부족")
         
         action = actions[i_pred]
@@ -91,16 +106,17 @@ def process_image(image_data):
         # 충분한 중복이 버퍼 쌓아
         if len(action_seq) < 3:
             return
-
+        print(f'인식 결과 : {action_seq[-1]}')
         # 충분히 쌓였을 때 마지막 3개가 같아야 함
         this_action = '?'
-        if action_seq[-1] == action_seq[-2] == action_seq[-3]:
+        if action_seq[-1] == action_seq[-2]: # == action_seq[-3]:
             this_action = action
             sen, res = unicode.process_word(sen, action_seq[-1])   
 
             if last_action != this_action:
                 last_action = this_action
-            
+            action_seq = []
+
     else:
         print("랜드마크 인식 실패")
     return res
