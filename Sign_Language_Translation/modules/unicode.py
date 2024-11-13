@@ -205,18 +205,7 @@ def comb_final_sub(c1, c2):
 
 # 음소(자모) -> 음절
 def join_jamos_char(init, med, final=None, sub=None):
-    """
-    Combines jamos into a single syllable.
-
-    Arguments:
-        init (str): Initial jao.
-        med (str): Medial jamo.
-        final (str): Final jamo. If not supplied, the final syllable is made
-            without the final. (default: None)
-
-    Returns:
-        A Korean syllable.
-    """
+    
     if sub is not None:
         combined_final = comb_final_sub(final, sub)
         if combined_final:
@@ -236,25 +225,6 @@ def join_jamos_char(init, med, final=None, sub=None):
 
 # 음소(자모) -> 어절(단어)
 def join_jamos(s, ignore_err=True):
-    """
-    Combines a sequence of jamos to produce a sequence of syllables.
-
-    Arguments:
-        s (str): A string (possible mixed with non-jamo characters).
-        ignore_err (bool): If set False, it will ensure that all characters
-            will be consumed for the making of syllables. It will throw a
-            ValueError when it fails to do so. (default: True)
-
-    Returns:
-        A string
-
-    Example:
-        >>> join_jamos("ㅇㅏㄴㄴㅕㅇㅎㅏㅅㅔㅇㅛ")
-        "안녕하세요"
-        >>> join_jamos("ㅇㅏㄴㄴㄴㅕㅇㅎㅏㅅㅔㅇㅛ")
-        "안ㄴ녕하세요"
-        >>> join_jamos()
-    """
     last_t = 0
     queue = []
     new_string = ""
@@ -436,10 +406,10 @@ def join_jamos(s, ignore_err=True):
 
 dc_befor = ['ㄱ', 'ㄷ', 'ㅂ', 'ㅅ', 'ㅈ']
 dc_after = ['ㄲ', 'ㄸ', 'ㅃ', 'ㅆ', 'ㅉ']
-def process_word(sentence, c):
+def process_word(sentence, c, last_word):
     #TODO 문제 발생 시 중복 안되게 막으면 됨
     if len(sentence) > 0:
-        if sentence[-1] == c:
+        if last_word == c:
             return sentence, join_jamos(sentence)
     
     if c == 'Space':

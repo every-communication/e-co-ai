@@ -112,10 +112,13 @@ def process_image(image_data):
         this_action = '?'
         if action_seq[-1] == action_seq[-2]: # == action_seq[-3]:
             this_action = action
-            sen, res = unicode.process_word(sen, action_seq[-1])   
+            sen, res = unicode.process_word(sen, action_seq[-1], last_action)   
 
             if last_action != this_action:
                 last_action = this_action
+            else:
+                last_action = '?'
+                
             action_seq = []
 
     else:
