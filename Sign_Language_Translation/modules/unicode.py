@@ -406,12 +406,17 @@ def join_jamos(s, ignore_err=True):
 
 dc_befor = ['ㄱ', 'ㄷ', 'ㅂ', 'ㅅ', 'ㅈ']
 dc_after = ['ㄲ', 'ㄸ', 'ㅃ', 'ㅆ', 'ㅉ']
-def process_word(sentence, c, last_word):
+counting_duplication = 0
+def process_word(sentence, c, last_action):
+    global counting_duplication
     #TODO 문제 발생 시 중복 안되게 막으면 됨
     if len(sentence) > 0:
-        if last_word == c:
-            return sentence, join_jamos(sentence)
-    
+        if last_action == c:
+            if counting_duplication <= 3:
+                counting_duplication += 1
+                return sentence, join_jamos(sentence), ""
+
+    counting_duplication = 0
     if c == 'Space':
         sentence = sentence + " "
 
@@ -432,7 +437,7 @@ def process_word(sentence, c, last_word):
         sentence += c
     
     result = join_jamos(sentence)
-    return sentence, result
+    return sentence, result, c
 
 
 if __name__=="__main__":

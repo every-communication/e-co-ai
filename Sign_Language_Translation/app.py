@@ -43,8 +43,7 @@ emitted_result = None
 # 이미지를 처리하고 예측 결과를 반환하는 함수
 def process_image(image_data):
     global sen, res, action_seq, seq, last_action
-    consecutive_threshold = 2  # 동일한 예측이 몇 프레임 이상 연속되어야 하는지
-
+    
     # 이미지를 디코딩하고 전처리
     img = cv2.imdecode(np.frombuffer(image_data, np.uint8), cv2.IMREAD_COLOR)
 
@@ -61,7 +60,7 @@ def process_image(image_data):
     # END"""
 
     if img is None:
-        print("이미지 디코딩 실패")
+        #print("이미지 디코딩 실패")
         return None
 
     img = detector.findHolistic(img, draw=True)
@@ -69,7 +68,7 @@ def process_image(image_data):
 
     if right_hand_lmList is not None:
 
-        print("랜드마크 인식 완료")
+        #print("랜드마크 인식 완료")
         joint = np.zeros((42, 2))
 
         for j, lm in enumerate(right_hand_lmList.landmark):
@@ -79,7 +78,6 @@ def process_image(image_data):
         d = np.concatenate([vector.flatten(), angle_label.flatten()])
 
         seq.append(d)
-
         if len(seq) < seq_length:
             return
 
@@ -97,32 +95,24 @@ def process_image(image_data):
         conf = y_pred[0][i_pred]
 
         # 모델 자신도 떨어지면 패스
-        if conf < 0.95:
+        if conf < 0.80:
             print("모델 자신도 부족")
             return
         
         action = actions[i_pred]
         action_seq.append(action)
-
-        # 충분한 중복이 버퍼 쌓아
-        if len(action_seq) < 3:
+        
+        # 충분한 중복이 버퍼 쌓아 마지막 3개가 같아야 함
+        if len(action_seq) < 2:
             return
-        print(f'인식 결과 : {action_seq[-1]}')
-        # 충분히 쌓였을 때 마지막 3개가 같아야 함
-        this_action = '?'
+        #print(f'인식 결과 : {action_seq[-1]}')
         if action_seq[-1] == action_seq[-2]: # == action_seq[-3]:
-            this_action = action
-            sen, res = unicode.process_word(sen, action_seq[-1], last_action)   
-
-            if last_action != this_action:
-                last_action = this_action
-            else:
-                last_action = '?'
-                
+            sen, res, last_action = unicode.process_word(sen, action_seq[-1], last_action)   
             action_seq = []
+            seq = seq[-5:]
 
-    else:
-        print("랜드마크 인식 실패")
+    #else:
+        #print("랜드마크 인식 실패")
     return res
 
 # WebSocket을 통한 이미지 수신 및 처리
@@ -131,16 +121,21 @@ def handle_image(data):
     global emitted_result
 
     image_data = data['image']  # 클라이언트에서 전송된 이미지를 가져옴
-    print("이미지 수신 완료!")
+    #print("이미지 수신 완료!")
 
     result = process_image(image_data)
     print(f"처리 결과 문장: {result}")
+    
+    if result is None:
+        return
 
-    if result == emitted_result:
-        print("전송하지 않음")
-    else:
+    if result != emitted_result:
         emitted_result = result
-        emit('response', {'result': result})  # 처리 결과를 클라이언트로 반환
+        if result is not None:
+            emitting_result = result + '.'
+        emit('response', {'result': emitting_result})  # 처리 결과를 클라이언트로 반환
+    #else:
+    #    print('전송하지 않음')
 
 @socketio.on('reset_session')
 def reset_session():
