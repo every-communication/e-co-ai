@@ -97,8 +97,9 @@ def process_image(image_data):
         conf = y_pred[0][i_pred]
 
         # 모델 자신도 떨어지면 패스
-        if conf < 0.95: # TODO: 올려야 함
+        if conf < 0.95:
             print("모델 자신도 부족")
+            return
         
         action = actions[i_pred]
         action_seq.append(action)
